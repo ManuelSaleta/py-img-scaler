@@ -1,0 +1,20 @@
+# PyCharm / JetBrains internal files
+.idea/
+!.idea/inspectionProfiles/
+!.idea/runConfigurations/
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Local logs & media directories
+*.log
+input_photos/
+output_upscaled_photos/
