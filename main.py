@@ -1,17 +1,6 @@
+import argparse
 import sys
 import time
-
-# --- Monkeypatch basicsr / torchvision breaking change ---
-import torchvision
-import torchvision.transforms.functional as TVF
-
-try:
-    from torchvision.transforms import functional_tensor
-except ImportError:
-    import types
-
-    sys.modules['torchvision.transforms.functional_tensor'] = TVF
-# ---------------------------------------------------------
 
 # Import BOTH the directory configuration and the active logger instance
 from py_img_scaler.config import dir_config, logger
@@ -19,6 +8,33 @@ from py_img_scaler.core.upscaler import AIUpscaler
 
 
 def main():
+    """
+    Main entry point for the PyImgScaler application.
+    Handles command-line arguments, initializes the directory configuration,
+    and orchestrates the upscaling of image resolutions.
+    """
+    # TODO: Finish implementing command-line argument parsing for source/destination directories to override config defaults
+    # And turn it into a proper CLI tool with --help and usage instructions
+    parser = argparse.ArgumentParser(
+        description="PyImgScaler: A cross-platform AI upscaling utility to upscale images to 5K."
+    )
+    parser.add_argument(
+        "-s", "--source",
+        type=str,
+        help="Path to the source directory containing input images. (Overrides config default)"
+    )
+    parser.add_argument(
+        "-d", "--destination",
+        type=str,
+        help="Path to the destination directory for upscaled outputs. (Overrides config default)"
+    )
+
+    args = parser.parse_args()
+    if args.source:
+        dir_config.source_dir = Path(args.source)
+    if args.destination:
+        dir_config.destination_dir = Path(args.destination)
+
     logger.info("================ Starting PyImgScaler Execution ================")
 
     # Use the config abstraction to verify/create directories
@@ -37,7 +53,9 @@ def main():
         return
 
     start_time = time.time()
-    upscaler_engine = AIUpscaler(model_name="RealESRGAN_x4plus", tile_size=400)
+
+    # Engine initialization matching your torchsr architecture configuration
+    upscaler_engine = AIUpscaler(model_name="ninasr_b0", tile_size=400)
 
     success_count = 0
     for idx, file_path in enumerate(image_files, 1):

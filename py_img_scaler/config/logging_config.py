@@ -29,6 +29,7 @@ def setup_logging():
     console_handler.setFormatter(log_format)
     logger.addHandler(console_handler)
 
+    # TODO: Append date/time to log file name for better historical tracking, e.g., upscaler_2024-06-15.log
     # 2. Rotating File Handler (Keeps up to three 5MB logs, discarding the oldest automatically)
     log_file_path = Path("upscaler.log")
     file_handler = RotatingFileHandler(

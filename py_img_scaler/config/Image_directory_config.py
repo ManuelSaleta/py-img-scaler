@@ -26,6 +26,9 @@ class ImageDirectoryConfig:
 
         self.relative = relative
 
+        # TODO: Make env variable names configurable via a separate config file or command-line args
+        # TODO: Add validation to ensure that the directories are writable and accessible
+        # TODO: Make env variable names into Enum for better type safety and maintainability
         # 1. Resolve paths checking Environment Variables first, then explicit arguments, then defaults
         env_source = os.getenv("PYIMG_SOURCE_DIR")
         env_dest = os.getenv("PYIMG_DEST_DIR")

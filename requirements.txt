@@ -9,8 +9,7 @@ opencv-python>=4.10.0
 tqdm>=4.67.0
 
 # --- AI Super-Resolution Models
-basicsr>=1.4.2
-realesrgan>=0.3.0
+torchsr>=1.0.4
 
 # --- Env Configuration
 python-dotenv>=1.0.1
