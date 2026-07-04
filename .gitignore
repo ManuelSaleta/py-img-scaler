@@ -18,3 +18,7 @@ env/
 *.log
 input_photos/
 output_upscaled_photos/
+
+
+# Model generated file
+RealESRGAN_x4plus.pth
