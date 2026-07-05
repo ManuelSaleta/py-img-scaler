@@ -1,9 +1,14 @@
-# Define the python interpreter to use for environment creation
-PYTHON_BIN ?= python
-VENV_DIR = .venv
-
 # Check OS to handle platform-specific installation logic
 UNAME_S := $(shell uname -s)
+
+# Automatically detect if python3 or python is available on the host system
+ifeq ($(shell which python3 >/dev/null 2>&1 && echo yes),yes)
+    PYTHON_BIN ?= python3
+else
+    PYTHON_BIN ?= python
+endif
+
+VENV_DIR = .venv
 
 .PHONY: help venv install clean run fresh
 

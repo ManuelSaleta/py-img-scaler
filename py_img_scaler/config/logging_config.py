@@ -9,7 +9,7 @@ def setup_logging():
     Sets up a dual-destination logging pipeline for py_img_scaler.
     Outputs to both the console (sys.stdout) and a rotating log file.
     """
-    logger = logging.getLogger("py_img_scaler")
+    logger = logging.getLogger("PyImgScaler")
 
     # Set the global minimum logging level
     logger.setLevel(logging.DEBUG)
