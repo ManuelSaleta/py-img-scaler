@@ -1,6 +1,6 @@
 import os
 import cv2
-import collections.namedtuple
+from collections import namedtuple
 import torch
 import torch.nn as nn
 import logging

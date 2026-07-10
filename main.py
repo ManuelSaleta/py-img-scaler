@@ -1,10 +1,8 @@
-import argparse
-import sys
 import time
 
 # Import BOTH the directory configuration and the active logger instance
-from py_img_scaler.config import dir_config, logger
-from py_img_scaler.core.upscaler import AIUpscaler
+from py_img_scaler.config import dir_config, get_parsed_args, logger
+from py_img_scaler.core import AIUpscaler
 
 
 def main():
@@ -13,43 +11,31 @@ def main():
     Handles command-line arguments, initializes the directory configuration,
     and orchestrates the upscaling of image resolutions.
     """
-    # TODO: Finish implementing command-line argument parsing for source/destination directories to override config defaults
-    # And turn it into a proper CLI tool with --help and usage instructions
-    parser = argparse.ArgumentParser(
-        description="PyImgScaler: A cross-platform AI upscaling utility to upscale images to 5K."
-    )
-    parser.add_argument(
-        "-s", "--source",
-        type=str,
-        help="Path to the source directory containing input images. (Overrides config default)"
-    )
-    parser.add_argument(
-        "-d", "--destination",
-        type=str,
-        help="Path to the destination directory for upscaled outputs. (Overrides config default)"
-    )
 
-    args = parser.parse_args()
-    if args.source:
-        dir_config.source_dir = Path(args.source)
-    if args.destination:
-        dir_config.destination_dir = Path(args.destination)
+    try:
+        args = get_parsed_args()
+        logger.info(f"Using model: ninasr_b{args.model or 0}")
+    except ValueError as e:
+        logger.error(f"Error: {e}")
 
     logger.info("================ Starting PyImgScaler Execution ================")
 
     # Use the config abstraction to verify/create directories
     dir_config.ensure_directories_exist()
 
-    supported_formats = {'.png', '.jpg', '.jpeg', '.webp'}
+    supported_formats = {".png", ".jpg", ".jpeg", ".webp"}
 
     # Enforce file-only iteration to safely avoid directory structural errors
     image_files = [
-        f for f in dir_config.source_dir.iterdir()
+        f
+        for f in dir_config.source_dir.iterdir()
         if f.is_file() and f.suffix.lower() in supported_formats
     ]
 
     if not image_files:
-        logger.warning(f"No valid images found in '{dir_config.source_dir}'. Add images there and re-run!")
+        logger.warning(
+            f"No valid images found in '{dir_config.source_dir}'. Add images there and re-run!"
+        )
         return
 
     start_time = time.time()
@@ -69,7 +55,9 @@ def main():
             success_count += 1
 
     total_time = time.time() - start_time
-    logger.info(f"Execution complete. Processed: {success_count}/{len(image_files)} files in {total_time:.2f}s.")
+    logger.info(
+        f"Execution complete. Processed: {success_count}/{len(image_files)} files in {total_time:.2f}s."
+    )
     logger.info("=====================================================================")
 
 
