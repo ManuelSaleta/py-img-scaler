@@ -1,18 +1,21 @@
 import logging
+import os
 import sys
-from pathlib import Path
+from datetime import datetime
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 
-def setup_logging():
+def setup_logging(name="py_img_scaler", log_level=logging.INFO) -> logging.Logger:
     """
     Sets up a dual-destination logging pipeline for py_img_scaler.
     Outputs to both the console (sys.stdout) and a rotating log file.
     """
-    logger = logging.getLogger("py_img_scaler")
+    logger = logging.getLogger(name)
 
     # Set the global minimum logging level
-    logger.setLevel(logging.DEBUG)
+    log_level = os.getenv("LOG_LEVEL") or log_level
+    logger.setLevel(log_level)
 
     # Prevent adding duplicate handlers if this initialization function is called twice
     if logger.handlers:
@@ -20,23 +23,26 @@ def setup_logging():
 
     # A clean, standardized layout tracking: Timestamp | Severity | File/Line | Message
     log_format = logging.Formatter(
-        '[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d]: %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        "[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d]: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    # 1. Console Handler (For real-time scanning in your terminal or PyCharm run window)
+    # CONSOLE Handler (For real-time scanning in your terminal or PyCharm run window)
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(log_format)
     logger.addHandler(console_handler)
 
-    # TODO: Append date/time to log file name for better historical tracking, e.g., upscaler_2024-06-15.log
-    # 2. Rotating File Handler (Keeps up to three 5MB logs, discarding the oldest automatically)
-    log_file_path = Path("upscaler.log")
+    # Format: YYYY-MM-DD_HHMMSS (e.g., upscaler_2026-07-11_114622.log), use the seconds flag to keeps logs entry organized if application ran multiple times same day.
+    date_time_info = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    log_filename = f"upscaler_{date_time_info}.log"
+    log_file_path = Path(log_filename)
+
+    # FILE Handler (Keeps up to three 5MB logs, discarding the oldest automatically)
     file_handler = RotatingFileHandler(
         log_file_path,
         maxBytes=5 * 1024 * 1024,  # 5 Megabytes
         backupCount=3,
-        encoding="utf-8"
+        encoding="utf-8",
     )
     file_handler.setFormatter(log_format)
     logger.addHandler(file_handler)

@@ -8,16 +8,16 @@ UNAME_S := $(shell uname -s)
 .PHONY: help venv install clean run fresh
 
 help:
-	@echo "PyImgScaler Automation Commands:"
+	@echo "py_img_scaler Automation Commands:"
 	@echo "  make fresh     - Complete reset: cleans, rebuilds venv, and installs packages"
 	@echo "  make venv      - Create a clean local virtual environment using $(PYTHON_BIN)"
 	@echo "  make install   - Upgrade core tooling and install platform-specific packages"
-	@echo "  make run       - Execute PyImgScaler main loop"
+	@echo "  make run       - Execute py_img_scaler main loop"
 	@echo "  make clean     - Destroy virtual environment and cached bytecodes"
 
 fresh: clean venv install
 	@echo "========================================================================"
-	@echo " PyImgScaler environment successfully rebuilt from scratch on $(UNAME_S)!"
+	@echo " py_img_scaler environment successfully rebuilt from scratch on $(UNAME_S)!"
 	@echo "========================================================================"
 
 venv:

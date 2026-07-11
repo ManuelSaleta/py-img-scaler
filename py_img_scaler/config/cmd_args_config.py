@@ -11,7 +11,7 @@ class CmdArgument(NamedTuple):
     desc: str
 
 
-project_desc = "PyImgScaler: A cross-platform AI upscaling utility to upscale images to a higher resolution."
+project_desc = "py_img_scaler: A cross-platform AI upscaling utility to upscale images to a higher resolution."
 
 predefined_command_line_args = [
     CmdArgument(
@@ -43,7 +43,9 @@ def validate_args(args):
             f"Destination directory '{args.destination}' does not exist or is not a directory."
         )
     if args.model and args.model not in ["0", "1", "2"]:
-        raise ValueError(f"Model '{args.model}' is invalid. Choose from 0, 1, or 2.")
+        raise ValueError(
+            f"Model '{args.model}' is invalid. Choose from 0, 1, or 2. 0 being least resource intensive model."
+        )
 
 
 def get_parsed_args():

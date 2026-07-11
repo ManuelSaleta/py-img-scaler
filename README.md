@@ -1,4 +1,4 @@
-# PyImgScaler
+# py_img_scaler
 
 A cross-platform, high-performance AI image upscaling.
 
