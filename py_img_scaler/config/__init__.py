@@ -1,16 +1,13 @@
-from dotenv import load_dotenv
-
-from .cmd_args_config import get_parsed_args
-from .Image_directory_config import ImageDirectoryConfig
 from .logging_config import setup_logging
 
-# Automatically search for and load a local .env file
-load_dotenv()
-
 # Initialize logging and capture the root engine instance
+# Ensures the subsequent module loggers get called.
 logger = setup_logging()
 
-# Instantiate the Singleton instance relative to the project root
-dir_config = ImageDirectoryConfig(relative=True)
+from .cmd_args_config import get_parsed_args
+from .Image_directory_config import build_runtime_config
 
-__all__ = ["logger", "dir_config", "get_parsed_args"]
+
+
+
+__all__ = ["logger","build_runtime_config", "get_parsed_args"]

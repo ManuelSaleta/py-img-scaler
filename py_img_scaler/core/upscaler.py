@@ -1,22 +1,29 @@
+import logging
 import os
-import cv2
+import urllib.request
 from collections import namedtuple
+from pathlib import Path
+
+import cv2
+import numpy as np
 import torch
 import torch.nn as nn
-import logging
-import urllib.request
-import numpy as np
-from pathlib import Path
-from torchsr.models import ninasr_b0  # Example native super-res model
+from torchsr.models import (
+    ninasr_b0,
+    ninasr_b1,
+    ninasr_b2,
+)
 
 # Retrieve the pre-configured global application logger
-logger = logging.getLogger("PyImgScaler")
+logger = logging.getLogger("py_img_scaler.core")
+
 
 # Quick and Dirty, but effective, check for GPU availability and type
 # TODO: Refactor for more robust error handling and support
 # TODO: Refactor Upscaler configuration to its own class or config file for better maintainability and testability
 class AIUpscaler:
-    def __init__(self, model_name="ninasr_b0", tile_size=400):
+
+    def __init__(self, model_choice: str, tile_size: int):
         """
         Cross-platform AI engine supporting NVIDIA CUDA, AMD ROCm (Linux), MPS (macOS), and CPU fallback.
         Powered by torchsr natively.
@@ -24,10 +31,11 @@ class AIUpscaler:
         # 1. Hardware layer selection
         if torch.cuda.is_available():
             self.device_type = "cuda"
-            if hasattr(torch.version, "hip") and torch.version.hip is not None:
-                self.hardware_vendor = "AMD ROCm"
-            else:
-                self.hardware_vendor = "NVIDIA CUDA"
+            self.hardware_vendor = (
+                "AMD ROCm"
+                if hasattr(torch.version, "hip") and torch.version.hip is not None
+                else "NVIDIA CUDA"
+            )
         elif torch.backends.mps.is_available():
             self.device_type = "mps"
             self.hardware_vendor = "APPLE MPS"
@@ -38,21 +46,33 @@ class AIUpscaler:
         self.device = torch.device(self.device_type)
         self.tile_size = tile_size
 
-        logger.info(f"Initializing Engine. Hardware Layer: {self.hardware_vendor}; Device Type: {self.device_type}")
+        logger.info(
+            f"Initializing Engine. Hardware Layer: {self.hardware_vendor}; Device Type: {self.device_type}"
+        )
 
-        # 2. Build the model natively from torchsr
-        # Note: torchsr natively ships models like NinaSR, EDSR, and RCAN.
-        if model_name == "ninasr_b0":
-            # NinaSR b0 has a default scale factor of 4x built into its architecture
-            self.model = ninasr_b0(scale=4, pretrained=True)
-        else:
-            logger.error(f"Unsupported torchsr model blueprint: {model_name}")
-            raise ValueError(f"Unsupported torchsr model blueprint: {model_name}")
+        # 2. Dynamic Model Resolution Map (Pythonic Factory Approach)
+        model_factory = {"0": ninasr_b0, "1": ninasr_b1, "2": ninasr_b2}
 
+        # Safe dictionary lookup with a baseline fallback
+        model_constructor = model_factory.get(str(model_choice))
+
+        if not model_constructor:
+            logger.error(f"Unsupported model choice selection: {model_choice}")
+            raise ValueError(
+                f"Invalid model choice '{model_choice}'. Choose from 0, 1, or 2."
+            )
+
+        # Instantiate dynamically. All ninasr architectures default to a 4x scale footprint.
+        logger.info(
+            f"Loading torchsr model architecture: {model_constructor.__name__} (Pretrained=True)"
+        )
+        self.model = model_constructor(scale=4, pretrained=True)
+
+        # Move to target accelerator and lock state down for inference
         self.model.to(self.device)
         self.model.eval()
 
-        # Enable FP16 native execution for discrete GPUs (CUDA/ROCm) to optimize VRAM/speed
+        # Enable FP16 native execution for discrete GPUs (CUDA) to optimize VRAM/speed
         self.use_fp16 = self.device_type == "cuda"
         if self.use_fp16:
             self.model.half()
@@ -65,7 +85,9 @@ class AIUpscaler:
         # Convert BGR to RGB, normalize to [0, 1], shape to [C, H, W]
         img_rgb = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
         img_tensor = torch.from_numpy(img_rgb).permute(2, 0, 1).float() / 255.0
-        img_tensor = img_tensor.unsqueeze(0).to(self.device)  # Add batch dimension [1, C, H, W]
+        img_tensor = img_tensor.unsqueeze(0).to(
+            self.device
+        )  # Add batch dimension [1, C, H, W]
 
         if self.use_fp16:
             img_tensor = img_tensor.half()
@@ -86,7 +108,11 @@ class AIUpscaler:
         scale = 4  # Matches ninasr_b0 native output footprint
 
         output_h, output_w = height * scale, width * scale
-        output_tensor = torch.zeros((batch, channels, output_h, output_w), dtype=img_tensor.dtype, device=self.device)
+        output_tensor = torch.zeros(
+            (batch, channels, output_h, output_w),
+            dtype=img_tensor.dtype,
+            device=self.device,
+        )
 
         pad = 12  # Padding limits seam artifacts between adjoining processing blocks
 
@@ -107,16 +133,21 @@ class AIUpscaler:
                 out_x0 = (x - x0) * scale
                 out_x1 = out_x0 + (min(x + self.tile_size, width) - x) * scale
 
-                target_y0, target_y1 = y * scale, min(y + self.tile_size, height) * scale
+                target_y0, target_y1 = (
+                    y * scale,
+                    min(y + self.tile_size, height) * scale,
+                )
                 target_x0, target_x1 = x * scale, min(x + self.tile_size, width) * scale
 
-                output_tensor[:, :, target_y0:target_y1, target_x0:target_x1] = tile_output[:, :, out_y0:out_y1, out_x0:out_x1]
+                output_tensor[:, :, target_y0:target_y1, target_x0:target_x1] = (
+                    tile_output[:, :, out_y0:out_y1, out_x0:out_x1]
+                )
 
         return output_tensor
 
     # TODO: Add support for batch processing of multiple images in a single call to improve throughput, if possible
     # TODO: Add support for custom output resolutions. Im just hardcoding 5K because thats my personal use case. But this should be a user-configurable option.
-    def upscale_to_5k(self, input_path, output_path):
+    def upscale_img(self, input_path, output_path):
         """
         Ingests an image path, runs it through the neural network pipeline, and
         uses an accurate bicubic interpolation resize to hit exactly 5K width.
@@ -135,10 +166,12 @@ class AIUpscaler:
             # TODO: Add support for aspect ratio preservation and letterboxing/pillarboxing if the input image is not 21:9
             # TODO: Make configurable for different target resolutions, not just 5K, and allow user-defined scaling factors
             target_width = 5120
-            target_height = 2160 # 5k2k cuz that what I use...
+            target_height = 2160  # 5k2k cuz that what I use...
             scale_factor = target_width / w
 
-            logger.info(f"Processing '{in_p.name}' ({w}x{h}) -> Targets 5K via model + target scaling")
+            logger.info(
+                f"Processing '{in_p.name}' ({w}x{h}) -> Targets 5K via model + target scaling"
+            )
 
             # 1. Image preprocessing to clean PyTorch tensor
             img_tensor = self._process_tensor(img)
@@ -156,13 +189,19 @@ class AIUpscaler:
             # 4. Bring the output to exactly 5K wide if the network's 4x scale doesn't perfectly match
             final_h = int(h * scale_factor)
             if upscaled_img.shape[1] != target_width:
-                upscaled_img = cv2.resize(upscaled_img, (target_width, final_h), interpolation=cv2.INTER_CUBIC)
+                upscaled_img = cv2.resize(
+                    upscaled_img, (target_width, final_h), interpolation=cv2.INTER_CUBIC
+                )
 
             # Save frame back to physical media disk asset
             cv2.imwrite(str(out_p), upscaled_img)
-            logger.info(f"Successfully {target_width}x{target_height} to frame to: {out_p.name}")
+            logger.info(
+                f"Successfully {target_width}x{target_height} to frame to: {out_p.name}"
+            )
             return True
 
         except Exception as e:
-            logger.exception(f"An unexpected error occurred while upscaling {input_path}: {str(e)}")
+            logger.exception(
+                f"An unexpected error occurred while upscaling {input_path}: {str(e)}"
+            )
             return False
