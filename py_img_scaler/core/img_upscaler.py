@@ -196,7 +196,7 @@ class AIUpscaler:
             # Save frame back to physical media disk asset
             cv2.imwrite(str(out_p), upscaled_img)
             logger.info(
-                f"Successfully {target_width}x{target_height} to frame to: {out_p.name}"
+                f"Successfully upscaled to: {target_width}x{target_height} to frame to: {out_p.name}"
             )
             return True
 

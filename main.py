@@ -19,26 +19,15 @@ def main():
     and orchestrates the upscaling of image resolutions.
     """
 
-    # 1. Parse and validate CLI inputs right at application startup
+    # Command line args
     parsed_arguments = get_parsed_args()
 
-    # 2. Pass them directly to build your immutable global configuration
-    # Note: We call the factory function directly here using the arguments!
+    # Config for directories, image files, and rendering model
     current_config = build_runtime_config(parsed_arguments)
-
-    logger.info("================ Starting py_img_scaler Execution ================")
-
-    # Use the config abstraction to verify/create directories
     current_config.ensure_directories_exist()
 
-    supported_formats = {".png", ".jpg", ".jpeg", ".webp"}
-
-    # Enforce file-only iteration to safely avoid directory structural errors
-    image_files = [
-        f
-        for f in current_config.source_dir.iterdir()
-        if f.is_file() and f.suffix.lower() in supported_formats
-    ]
+    # Found images
+    image_files = current_config.get_image_files()
 
     if not image_files:
         logger.warning(
@@ -54,6 +43,9 @@ def main():
     )
 
     success_count = 0
+
+    logger.info("================ Starting py_img_scaler Execution ================")
+
     for idx, file_path in enumerate(image_files, 1):
         logger.info(f"Queue Progress: [{idx}/{len(image_files)}]")
 
