@@ -4,10 +4,7 @@ from .logging_config import setup_logging
 # Ensures the subsequent module loggers get called.
 logger = setup_logging()
 
-from .cmd_args_config import get_parsed_args
+from .cli_config import get_parsed_args
 from .Image_directory_config import build_runtime_config
 
-
-
-
-__all__ = ["logger","build_runtime_config", "get_parsed_args"]
+__all__ = ["logger", "build_runtime_config", "get_parsed_args"]

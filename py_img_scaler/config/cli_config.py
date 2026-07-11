@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 
-class CmdArgument(NamedTuple):
+class CliArgument(NamedTuple):
     """Simple data structure to hold command line argument details."""
 
     short: str
@@ -14,17 +14,17 @@ class CmdArgument(NamedTuple):
 project_desc = "py_img_scaler: A cross-platform AI upscaling utility to upscale images to a higher resolution."
 
 predefined_command_line_args = [
-    CmdArgument(
+    CliArgument(
         short="-s",
         long="--source",
         desc="Path to the source directory containing input images. (Overrides config default)",
     ),
-    CmdArgument(
+    CliArgument(
         short="-d",
         long="--destination",
         desc="Path to the destination directory for upscaled outputs. (Overrides config default)",
     ),
-    CmdArgument(
+    CliArgument(
         short="-m",
         long="--model",
         desc="Specify the AI model to use for upscaling. values 0,1,2 - 0 is the smallest and most performant model, 2 is the largest and most accurate model, but will be slower and most powerful (Overrides config default)",
