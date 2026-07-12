@@ -5,7 +5,7 @@ VENV_DIR = .venv
 # Check OS to handle platform-specific installation logic
 UNAME_S := $(shell uname -s)
 
-.PHONY: help venv install clean run fresh
+.PHONY: help venv install clean run fresh lint check
 
 help:
 	@echo "py_img_scaler Automation Commands:"
@@ -14,6 +14,8 @@ help:
 	@echo "  make install   - Upgrade core tooling and install platform-specific packages"
 	@echo "  make run       - Execute py_img_scaler main loop"
 	@echo "  make clean     - Destroy virtual environment and cached bytecodes"
+	@echo "  make lint      - Runs, Black, Ruff, and MyPy checks"
+	@echo "  make check      - Runs, Black, Ruff, and MyPy checks"
 
 fresh: clean venv install
 	@echo "========================================================================"
@@ -48,3 +50,17 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 	@echo "Cleanup complete."
+
+
+lint:
+	@echo "Applying formatting rules and auto-fixing lint issues..."
+	.venv/bin/black .
+	.venv/bin/ruff check --fix .
+	.venv/bin/mypy .
+
+
+check:
+	@echo "Check formatting stats only..."
+	.venv/bin/black --check .
+	.venv/bin/ruff check .
+	.venv/bin/mypy .

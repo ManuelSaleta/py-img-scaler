@@ -1,8 +1,10 @@
-import os
-import unittest
-from py_img_scaler.config import log_config
-from unittest.mock import patch, MagicMock
 import logging
+import unittest
+from unittest.mock import patch
+
+from py_img_scaler.config import log_config
+
+
 # Testing Logging is not really recommended, just checking it respects the custom ENV_VARS
 class LoggingConfigUnitTests(unittest.TestCase):
 

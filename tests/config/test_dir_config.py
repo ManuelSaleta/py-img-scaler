@@ -1,4 +1,3 @@
-import os
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -19,9 +18,7 @@ class DirConfigUnitTests(unittest.TestCase):
         self.mock_cli_args.model = None
 
     @patch("pathlib.Path.exists", return_value=False)
-    def test_get_image_files_returns_empty_list_if_dir_does_not_exist(
-        self, mock_exists
-    ):
+    def test_get_image_files_returns_empty_list_if_dir_does_not_exist(self, mock_exists):
         # Arrange
         config = DirConfig(
             source_dir=Path("/fake/dir"),
@@ -37,9 +34,7 @@ class DirConfigUnitTests(unittest.TestCase):
 
     @patch("pathlib.Path.exists", return_value=True)
     @patch("pathlib.Path.iterdir")
-    def test_get_image_files_filters_supported_formats_and_ignores_directories(
-        self, mock_iterdir, mock_exists
-    ):
+    def test_get_image_files_filters_supported_formats_and_ignores_directories(self, mock_iterdir, mock_exists):
         # Arrange
         # Create mock file paths with fake attributes
         mock_png = MagicMock(spec=Path)
@@ -125,9 +120,7 @@ class DirConfigUnitTests(unittest.TestCase):
 
         # Assert
         self.assertEqual(config.source_dir, Path("input_photos").resolve())
-        self.assertEqual(
-            config.destination_dir, Path("output_upscaled_photos").resolve()
-        )
+        self.assertEqual(config.destination_dir, Path("output_upscaled_photos").resolve())
         self.assertEqual(config.model_choice, "0")
 
     def test_absolute_path_resolution_when_not_relative(self):

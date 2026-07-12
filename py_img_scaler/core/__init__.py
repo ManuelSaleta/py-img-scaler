@@ -1,3 +1,3 @@
 from .img_upscaler import AIUpscaler
 
-_all__ = ["AIUpscaler"]
+__all__ = ["AIUpscaler"]

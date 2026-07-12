@@ -32,7 +32,7 @@ def setup_logging(name="py_img_scaler", log_level=logging.INFO) -> logging.Logge
     console_handler.setFormatter(log_format)
     logger.addHandler(console_handler)
 
-    # Format: YYYY-MM-DD_HHMMSS (e.g., upscaler_2026-07-11_114622.log), use the seconds flag to keeps logs entry organized if application ran multiple times same day.
+    # Format: YYYY-MM-DD_HHMMSS (e.g., upscaler_2026-07-11_114622.log)
     date_time_info = datetime.now().strftime("%Y-%m-%d_%H%M%S")
     log_filename = f"upscaler_{date_time_info}.log"
     log_file_path = Path(log_filename)

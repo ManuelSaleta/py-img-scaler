@@ -5,11 +5,13 @@ from dotenv import load_dotenv
 """
 ATTENTION: Extremely important note:     # 0. Very fist step, load environment variables from a .env file if present
     load_dotenv() - This ensures all custom modules have access to environment variables before any other code executes.
-    Do not change the order, loading custom modules before this line could break the application if those modules rely on environment variables.
+    Do not change the order, loading custom modules before this line could break the application
+    if those modules rely on environment variables.
 """
 load_dotenv()
-from py_img_scaler.config import build_runtime_config, get_parsed_args, logger
-from py_img_scaler.core import AIUpscaler
+
+from py_img_scaler.config import build_runtime_config, get_parsed_args, logger  # noqa: E402
+from py_img_scaler.core import AIUpscaler  # noqa: E402
 
 
 def main():
@@ -30,17 +32,13 @@ def main():
     image_files = current_config.get_image_files()
 
     if not image_files:
-        logger.warning(
-            f"No valid images found in '{current_config.source_dir}'. Add images there and re-run!"
-        )
+        logger.warning(f"No valid images found in '{current_config.source_dir}'. Add images there and re-run!")
         return
 
     start_time = time.time()
 
     # Engine initialization matching your torchsr architecture configuration
-    upscaler_engine = AIUpscaler(
-        model_choice=current_config.model_choice, tile_size=400
-    )
+    upscaler_engine = AIUpscaler(model_choice=current_config.model_choice, tile_size=400)
 
     success_count = 0
 
@@ -57,9 +55,7 @@ def main():
             success_count += 1
 
     total_time = time.time() - start_time
-    logger.info(
-        f"Execution complete. Processed: {success_count}/{len(image_files)} files in {total_time:.2f}s."
-    )
+    logger.info(f"Execution complete. Processed: {success_count}/{len(image_files)} files in {total_time:.2f}s.")
     logger.info("=====================================================================")
 
 
