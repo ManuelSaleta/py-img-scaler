@@ -1,13 +1,9 @@
 import logging
-import os
-import urllib.request
-from collections import namedtuple
 from pathlib import Path
 
 import cv2
 import numpy as np
 import torch
-import torch.nn as nn
 from torchsr.models import (
     ninasr_b0,
     ninasr_b1,
@@ -32,9 +28,7 @@ class AIUpscaler:
         if torch.cuda.is_available():
             self.device_type = "cuda"
             self.hardware_vendor = (
-                "AMD ROCm"
-                if hasattr(torch.version, "hip") and torch.version.hip is not None
-                else "NVIDIA CUDA"
+                "AMD ROCm" if hasattr(torch.version, "hip") and torch.version.hip is not None else "NVIDIA CUDA"
             )
         elif torch.backends.mps.is_available():
             self.device_type = "mps"
@@ -46,9 +40,7 @@ class AIUpscaler:
         self.device = torch.device(self.device_type)
         self.tile_size = tile_size
 
-        logger.info(
-            f"Initializing Engine. Hardware Layer: {self.hardware_vendor}; Device Type: {self.device_type}"
-        )
+        logger.info(f"Initializing Engine. Hardware Layer: {self.hardware_vendor}; Device Type: {self.device_type}")
 
         # 2. Dynamic Model Resolution Map (Pythonic Factory Approach)
         model_factory = {"0": ninasr_b0, "1": ninasr_b1, "2": ninasr_b2}
@@ -58,14 +50,10 @@ class AIUpscaler:
 
         if not model_constructor:
             logger.error(f"Unsupported model choice selection: {model_choice}")
-            raise ValueError(
-                f"Invalid model choice '{model_choice}'. Choose from 0, 1, or 2."
-            )
+            raise ValueError(f"Invalid model choice '{model_choice}'. Choose from 0, 1, or 2.")
 
         # Instantiate dynamically. All ninasr architectures default to a 4x scale footprint.
-        logger.info(
-            f"Loading torchsr model architecture: {model_constructor.__name__} (Pretrained=True)"
-        )
+        logger.info(f"Loading torchsr model architecture: {model_constructor.__name__} (Pretrained=True)")
         self.model = model_constructor(scale=4, pretrained=True)
 
         # Move to target accelerator and lock state down for inference
@@ -85,9 +73,7 @@ class AIUpscaler:
         # Convert BGR to RGB, normalize to [0, 1], shape to [C, H, W]
         img_rgb = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
         img_tensor = torch.from_numpy(img_rgb).permute(2, 0, 1).float() / 255.0
-        img_tensor = img_tensor.unsqueeze(0).to(
-            self.device
-        )  # Add batch dimension [1, C, H, W]
+        img_tensor = img_tensor.unsqueeze(0).to(self.device)  # Add batch dimension [1, C, H, W]
 
         if self.use_fp16:
             img_tensor = img_tensor.half()
@@ -139,9 +125,9 @@ class AIUpscaler:
                 )
                 target_x0, target_x1 = x * scale, min(x + self.tile_size, width) * scale
 
-                output_tensor[:, :, target_y0:target_y1, target_x0:target_x1] = (
-                    tile_output[:, :, out_y0:out_y1, out_x0:out_x1]
-                )
+                output_tensor[:, :, target_y0:target_y1, target_x0:target_x1] = tile_output[
+                    :, :, out_y0:out_y1, out_x0:out_x1
+                ]
 
         return output_tensor
 
@@ -169,9 +155,7 @@ class AIUpscaler:
             target_height = 2160  # 5k2k cuz that what I use...
             scale_factor = target_width / w
 
-            logger.info(
-                f"Processing '{in_p.name}' ({w}x{h}) -> Targets 5K via model + target scaling"
-            )
+            logger.info(f"Processing '{in_p.name}' ({w}x{h}) -> Targets 5K via model + target scaling")
 
             # 1. Image preprocessing to clean PyTorch tensor
             img_tensor = self._process_tensor(img)
@@ -189,19 +173,13 @@ class AIUpscaler:
             # 4. Bring the output to exactly 5K wide if the network's 4x scale doesn't perfectly match
             final_h = int(h * scale_factor)
             if upscaled_img.shape[1] != target_width:
-                upscaled_img = cv2.resize(
-                    upscaled_img, (target_width, final_h), interpolation=cv2.INTER_CUBIC
-                )
+                upscaled_img = cv2.resize(upscaled_img, (target_width, final_h), interpolation=cv2.INTER_CUBIC)
 
             # Save frame back to physical media disk asset
             cv2.imwrite(str(out_p), upscaled_img)
-            logger.info(
-                f"Successfully {target_width}x{target_height} to frame to: {out_p.name}"
-            )
+            logger.info(f"Successfully upscaled to: {target_width}x{target_height} to frame to: {out_p.name}")
             return True
 
         except Exception as e:
-            logger.exception(
-                f"An unexpected error occurred while upscaling {input_path}: {str(e)}"
-            )
+            logger.exception(f"An unexpected error occurred while upscaling {input_path}: {str(e)}")
             return False

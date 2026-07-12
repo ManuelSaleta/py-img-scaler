@@ -22,3 +22,9 @@ output_upscaled_photos/
 
 
 .vscode/
+
+# Architecture / Build artifacts
+*.egg-info/
+.eggs/
+build/
+dist/
