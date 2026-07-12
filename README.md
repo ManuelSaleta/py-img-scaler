@@ -1,6 +1,6 @@
 # py_img_scaler
 
-A cross-platform, high-performance AI image upscaling.
+A cross-platform, high-performance AI image upscaling tool.
 
 Powered natively by `torchsr` (NinaSR). Supports hardware acceleration across NVIDIA, AMD, and Apple Silicon.
 
@@ -40,10 +40,8 @@ make fresh
 
 ## License
 
-This project is open-source software licensed under the **GNU General Public License v3.0 (GPLv3)**.
+- This project is open-source software licensed under the **GNU General Public License v3.0 (GPLv3)**.
 
 ### Key Terms & Copyleft Requirements:
 
-- **Source Disclosure:** Any modifications, derivative works, or larger projects that incorporate this code must also be open-sourced and made publicly available under the exact same GPLv3 license.
-- **Patent Protection:** Contributors explicitly grant patent rights to users, protecting the community from downstream patent litigation.
-- **Anti-Tivoization:** If this software is distributed inside a consumer hardware device, you must provide the installation keys or instructions necessary for users to modify and execute the code on that hardware.
+- See the accompanying `LICENSE` file at the root of this repository for the full legal text.
