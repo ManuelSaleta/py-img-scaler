@@ -3,8 +3,8 @@ requires = ["setuptools>=70.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "py_img_scaler"
-version = "0.1.0"
+name = "py-img-scaler"
+version = "0.0.1"
 description = "A cross-platform AI upscaling utility to upscale images to a higher resolution."
 requires-python = ">=3.14"
 dependencies = [
