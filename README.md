@@ -17,7 +17,7 @@ Powered natively by `torchsr` (NinaSR). Supports hardware acceleration across NV
 
 ### 1. System Dependencies (Linux)
 
-Ensure Python 3.12 (recommended) and your platform graphics drivers (ROCm/CUDA) are installed.
+Ensure Python 3.14 (recommended) and your platform graphics drivers (ROCm/CUDA) are installed.
 
 ### 2. Automated Environment Setup
 
@@ -26,3 +26,24 @@ The project contains a platform-aware pipeline configuration tracker. Run the fo
 ```bash
 make fresh
 ```
+
+### Additional Make recipes
+
+    `make venv`      - Create a clean local virtual environment using $(PYTHON_BIN)"
+    `make install`   - Upgrade core tooling and install platform-specific packages"
+    `make run`       - Execute py_img_scaler main loop"
+    `make clean`     - Destroy virtual environment and cached bytecodes"
+    `make lint`      - Runs, Black, Ruff, and MyPy checks"
+    `make check`     - Only check Black, Ruff, and MyPy checks"
+
+---
+
+## License
+
+This project is open-source software licensed under the **GNU General Public License v3.0 (GPLv3)**.
+
+### Key Terms & Copyleft Requirements:
+
+- **Source Disclosure:** Any modifications, derivative works, or larger projects that incorporate this code must also be open-sourced and made publicly available under the exact same GPLv3 license.
+- **Patent Protection:** Contributors explicitly grant patent rights to users, protecting the community from downstream patent litigation.
+- **Anti-Tivoization:** If this software is distributed inside a consumer hardware device, you must provide the installation keys or instructions necessary for users to modify and execute the code on that hardware.
