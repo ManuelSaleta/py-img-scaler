@@ -5,7 +5,7 @@ VENV_DIR = .venv
 # Check OS to handle platform-specific installation logic
 UNAME_S := $(shell uname -s)
 
-.PHONY: help venv install clean run fresh lint check
+.PHONY: help venv install clean run fresh lint check test
 
 help:
 	@echo "py_img_scaler Automation Commands:"
@@ -16,6 +16,7 @@ help:
 	@echo "  make clean     - Destroy virtual environment and cached bytecodes"
 	@echo "  make lint      - Runs, Black, Ruff, and MyPy checks"
 	@echo "  make check      - Runs, Black, Ruff, and MyPy checks"
+	@echo "  make test      - Run all unit tests inside the tests directory"
 
 fresh: clean venv install
 	@echo "========================================================================"
@@ -64,3 +65,7 @@ check:
 	.venv/bin/black --check .
 	.venv/bin/ruff check .
 	.venv/bin/mypy .
+
+test:
+	@echo "Executing automated unittest suite suite..."
+	$(VENV_DIR)/bin/python -m unittest discover -s tests -p "test_*.py" -v

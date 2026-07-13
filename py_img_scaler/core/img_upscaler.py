@@ -10,20 +10,23 @@ from torchsr.models import (
     ninasr_b2,
 )
 
+# Target the new single source of truth configuration context module
+from py_img_scaler.config import ContextConfiguration
+
 # Retrieve the pre-configured global application logger
 logger = logging.getLogger("py_img_scaler.core")
 
 
 # Quick and Dirty, but effective, check for GPU availability and type
 # TODO: Refactor for more robust error handling and support
-# TODO: Refactor Upscaler configuration to its own class or config file for better maintainability and testability
 class AIUpscaler:
 
-    def __init__(self, model_choice: str, tile_size: int):
+    def __init__(self, config: ContextConfiguration):
         """
         Cross-platform AI engine supporting NVIDIA CUDA, AMD ROCm (Linux), MPS (macOS), and CPU fallback.
         Powered by torchsr natively.
         """
+
         # 1. Hardware layer selection
         if torch.cuda.is_available():
             self.device_type = "cuda"
@@ -38,7 +41,12 @@ class AIUpscaler:
             self.hardware_vendor = "CPU FALLBACK"
 
         self.device = torch.device(self.device_type)
-        self.tile_size = tile_size
+
+        # Set initial config for the AIUpscaler itself
+        self.model_choice = config.model
+        self.tile_size = config.tile_size
+        self.target_width = config.target_width
+        self.target_height = config.target_height
 
         logger.info(f"Initializing Engine. Hardware Layer: {self.hardware_vendor}; Device Type: {self.device_type}")
 
@@ -46,11 +54,11 @@ class AIUpscaler:
         model_factory = {"0": ninasr_b0, "1": ninasr_b1, "2": ninasr_b2}
 
         # Safe dictionary lookup with a baseline fallback
-        model_constructor = model_factory.get(str(model_choice))
+        model_constructor = model_factory.get(self.model_choice)
 
         if not model_constructor:
-            logger.error(f"Unsupported model choice selection: {model_choice}")
-            raise ValueError(f"Invalid model choice '{model_choice}'. Choose from 0, 1, or 2.")
+            logger.error(f"Unsupported model choice selection: {self.model_choice}")
+            raise ValueError(f"Invalid model choice '{self.model_choice}'. Choose from 0, 1, or 2.")
 
         # Instantiate dynamically. All ninasr architectures default to a 4x scale footprint.
         logger.info(f"Loading torchsr model architecture: {model_constructor.__name__} (Pretrained=True)")
@@ -132,7 +140,6 @@ class AIUpscaler:
         return output_tensor
 
     # TODO: Add support for batch processing of multiple images in a single call to improve throughput, if possible
-    # TODO: Add support for custom output resolutions. Im just hardcoding 5K because thats my personal use case. But this should be a user-configurable option.
     def upscale_img(self, input_path, output_path):
         """
         Ingests an image path, runs it through the neural network pipeline, and
@@ -150,9 +157,8 @@ class AIUpscaler:
             h, w = img.shape[:2]
             # TODO: Ensure that the input image is not smaller than the target resolution to avoid upscaling artifacts
             # TODO: Add support for aspect ratio preservation and letterboxing/pillarboxing if the input image is not 21:9
-            # TODO: Make configurable for different target resolutions, not just 5K, and allow user-defined scaling factors
-            target_width = 5120
-            target_height = 2160  # 5k2k cuz that what I use...
+            target_width = self.target_width
+            target_height = self.target_height  # Fixed attribute name spelling
             scale_factor = target_width / w
 
             logger.info(f"Processing '{in_p.name}' ({w}x{h}) -> Targets 5K via model + target scaling")

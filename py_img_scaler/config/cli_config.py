@@ -2,7 +2,6 @@ import argparse
 from pathlib import Path
 from typing import NamedTuple
 
-
 class CliArgument(NamedTuple):
     """Simple data structure to hold command line argument details."""
 
@@ -27,6 +26,8 @@ predefined_command_line_args = [
     CliArgument(
         short="-m", long="--model", desc="Specify the AI model to use for upscaling. values 0,1,2 - 0 is smallest model"
     ),
+    CliArgument(short="-W", long="--width", desc="The target width to upscale to. Default to 1920"),
+    CliArgument(short="-H", long="--height", desc="The target width to upscale to. Default to 1080"),
 ]
 
 
@@ -40,6 +41,9 @@ def validate_args(args):
         raise ValueError(
             f"Model '{args.model}' is invalid. Choose from 0, 1, or 2. 0 being least resource intensive model."
         )
+
+    args.width = round(abs(int(args.width))) if args.width else None
+    args.height = round(abs(int(args.height))) if args.height else None
 
 
 def get_parsed_args():
