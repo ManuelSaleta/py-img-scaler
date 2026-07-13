@@ -13,8 +13,8 @@ class LoggingConfigUnitTests(unittest.TestCase):
         logger = logging.getLogger("py_img_scaler_test")
         logger.handlers.clear()
 
-    # We mock RotatingFileHandler completely so it never touches the disk
-    @patch("py_img_scaler.config.logging_config.RotatingFileHandler")
+    # Fixed: Changed logging_config to log_config to match your real file layout
+    @patch("py_img_scaler.config.log_config.RotatingFileHandler")
     @patch.dict("os.environ", {"LOG_LEVEL": "DEBUG"})
     def test_log_level_overridden_by_env_var(self, mock_file_handler):
         # Act
@@ -23,7 +23,8 @@ class LoggingConfigUnitTests(unittest.TestCase):
         # Assert: Even though we requested INFO, the ENV var should force DEBUG
         self.assertEqual(logger.level, logging.DEBUG)
 
-    @patch("py_img_scaler.config.logging_config.RotatingFileHandler")
+    # Fixed: Changed logging_config to log_config to match your real file layout
+    @patch("py_img_scaler.config.log_config.RotatingFileHandler")
     @patch.dict("os.environ", {}, clear=True)
     def test_prevent_duplicate_handlers(self, mock_file_handler):
         # Act: Call it twice on the same logger name

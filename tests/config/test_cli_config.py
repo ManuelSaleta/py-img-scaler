@@ -128,16 +128,47 @@ class CliConfigUnitTests(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             cli_config.get_parsed_args()
 
-        # You can now access the actual exception object via context.exception
+        # Extract the exception context message string
         actual_error_message = str(context.exception)
 
-        # This is a bit brittle as you don't necessarily want to test the string values BUT...
-        # It is a good example on how to extract the context for other tests
         # Verify the message matches your cli_config error output
         self.assertEqual(
             actual_error_message,
             "Model '4' is invalid. Choose from 0, 1, or 2. 0 being least resource intensive model.",
         )
+
+    @patch("pathlib.Path.is_dir", return_value=True)
+    @patch("sys.argv", ["program_name", "--width", "3840", "--height", "2160"])
+    def test_width_and_height_long_arguments(self, mock_is_dir):
+        """Verify long flags cleanly map primitives down to targets."""
+        # Act
+        parsed = cli_config.get_parsed_args()
+
+        # Assert
+        self.assertEqual(parsed.width, 3840)
+        self.assertEqual(parsed.height, 2160)
+
+    @patch("pathlib.Path.is_dir", return_value=True)
+    @patch("sys.argv", ["program_name", "-W", "2560", "-H", "-1440"])
+    def test_width_and_height_short_flags_with_negative_sanitization(self, mock_is_dir):
+        """Confirm negative input configurations sanitize via validation math layers."""
+        # Act
+        parsed = cli_config.get_parsed_args()
+
+        # Assert
+        self.assertEqual(parsed.width, 2560)
+        self.assertEqual(parsed.height, 1440)  # -1440 should be sanitized via abs() to 1440
+
+    @patch("pathlib.Path.is_dir", return_value=True)
+    @patch("sys.argv", ["program_name"])
+    def test_width_and_height_fallback_to_none_when_unspecified(self, mock_is_dir):
+        """Verify dimension arguments resolve cleanly to None if left out entirely."""
+        # Act
+        parsed = cli_config.get_parsed_args()
+
+        # Assert
+        self.assertIsNone(parsed.width)
+        self.assertIsNone(parsed.height)
 
 
 if __name__ == "__main__":
