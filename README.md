@@ -1,5 +1,7 @@
 # py_img_scaler
 
+[![Tests](https://github.com/ManuelSaleta/py-img-scaler/actions/workflows/python-test.yml/badge.svg)](https://github.com/ManuelSaleta/py-img-scaler/actions/workflows/python-test.yml)
+
 A cross-platform, high-performance AI image upscaling tool.
 
 Powered natively by `torchsr` (NinaSR). Supports hardware acceleration across NVIDIA, AMD, and Apple Silicon.
@@ -29,13 +31,16 @@ make fresh
 
 ### Additional Make recipes
 
-    `make venv`      - Create a clean local virtual environment using $(PYTHON_BIN)"
-    `make install`   - Upgrade core tooling and install platform-specific packages"
-    `make run`       - Execute py_img_scaler main loop"
-    `make clean`     - Destroy virtual environment and cached bytecodes"
-    `make lint`      - Runs, Black, Ruff, and MyPy checks"
-    `make check`     - Only check Black, Ruff, and MyPy checks"
-    `make test`      - Run all unit tests inside the tests directory"
+```bash
+    make venv      - Create a clean local virtual environment using $(PYTHON_BIN)"
+    make install   - Upgrade core tooling and install platform-specific packages"
+    make run       - Execute py_img_scaler main loop"
+    make clean     - Destroy virtual environment and cached bytecodes"
+    make lint      - Runs, Black, Ruff, and MyPy checks"
+    make check     - Only check Black, Ruff, and MyPy checks"
+    make test      - Run all unit tests inside the tests directory"
+```
+
 ---
 
 ## Usage Examples
@@ -44,21 +49,22 @@ make fresh
 
 #### CLI Arguments Matrix
 
-| Short Flag | Long Flag | Description | Default / Allowed Values |
-| :--- | :--- | :--- | :--- |
-| `-s` | `--source` | Path to the directory containing input images. | *Required* |
-| `-d` | `--destination` | Path to the directory for upscaled assets. | *Required* |
-| `-m` | `--model` | Select target `torchsr` architecture scale depth. | `0`, `1`, or `2` |
-| `-W` | `--width` | Force target width bounding configuration. | `1920` |
-| `-H` | `--height` | Force target height bounding configuration. | `1080` |
+| Short Flag | Long Flag       | Description                                       | Default / Allowed Values |
+| :--------- | :-------------- | :------------------------------------------------ | :----------------------- |
+| `-s`       | `--source`      | Path to the directory containing input images.    | _Required_               |
+| `-d`       | `--destination` | Path to the directory for upscaled assets.        | _Required_               |
+| `-m`       | `--model`       | Select target `torchsr` architecture scale depth. | `0`, `1`, or `2`         |
+| `-W`       | `--width`       | Force target width bounding configuration.        | `1920`                   |
+| `-H`       | `--height`      | Force target height bounding configuration.       | `1080`                   |
 
 Once your environment is provisioned, invoke the processing pipeline directly using explicit configuration flags:
+
 ```bash
     # Basic execution utilizing default resolutions
     py_img_scaler --source ./input_photos --destination ./upscaled_output --model 1
 
     # Advanced execution overriding targets for a crisp 5K Ultra-Wide frame canvas
-    py_img_scaler -s ./wallpapers -d ./output -m 2 -W 5120 -H 2160    
+    py_img_scaler -s ./wallpapers -d ./output -m 2 -W 5120 -H 2160
 ```
 
 ### 2. Working with the API Directly
@@ -83,13 +89,13 @@ try:
     # 3. Instantiate the execution engine (Auto-detects CUDA / MPS / CPU)
     # Will work on all platforms MacOS / Windows / Linux
     engine = AIUpscaler(config=config)
-    
+
     # 4. Ingest and upscale individual physical media frames
     success = engine.upscale_img(
         input_path="./input_photos/raw_horizon.jpg",
         output_path="./output_upscaled_photos/5k_horizon.jpg"
     )
-    
+
     if success:
         logger.info("Image upscale task executed successfully.")
 
