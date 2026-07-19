@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import torch
 
-from src.py_img_scaler.core import AIUpscaler
+from src.py_img_scaler.core import ImgScaler
 
 
 class ImgUpscalerUnitTests(unittest.TestCase):
@@ -58,14 +58,14 @@ class ImgUpscalerUnitTests(unittest.TestCase):
         self.mock_config.model = "99"  # Corrupted configuration value
 
         with self.assertRaises(ValueError):
-            AIUpscaler(self.mock_config)
+            ImgScaler(self.mock_config)
 
     @patch("torch.cuda.is_available", return_value=False)
     @patch("torchsr.models.ninasr_b1")
     def test_tensor_preprocessing_dimensions_and_scaling(self, mock_model_b1, mock_cuda_avail):
         """Confirm structural matrix dimensions shift from [H, W, C] to [1, C, H, W]."""
         # Arrange
-        scaler = AIUpscaler(self.mock_config)
+        scaler = ImgScaler(self.mock_config)
 
         # Act
         tensor_output = scaler._process_tensor(self.dummy_cv_img)
@@ -90,7 +90,7 @@ class ImgUpscalerUnitTests(unittest.TestCase):
         mock_model_b1.return_value = mock_model_instance
 
         self.mock_config.tile_size = 20
-        scaler = AIUpscaler(self.mock_config)
+        scaler = ImgScaler(self.mock_config)
 
         # FIX: Ensure input_tensor is created on the scaler's device
         input_tensor = torch.zeros((1, 3, 20, 20)).to(scaler.device)
@@ -138,7 +138,7 @@ class ImgUpscalerUnitTests(unittest.TestCase):
     def test_upscale_img_returns_false_on_missing_file_asset(self, mock_model_b1, mock_imread, mock_cuda_avail):
         """Confirm execution failure gracefully stops if image parsing asset breaks."""
         # Arrange
-        scaler = AIUpscaler(self.mock_config)
+        scaler = ImgScaler(self.mock_config)
 
         # Act
         success = scaler.upscale_img("broken_path.png", "output.png")

@@ -19,7 +19,7 @@ logger = logging.getLogger("py_img_scaler.core")
 
 # Quick and Dirty, but effective, check for GPU availability and type
 # TODO: Refactor for more robust error handling and support
-class AIUpscaler:
+class ImgScaler:
 
     def __init__(self, config: ContextConfiguration):
         """

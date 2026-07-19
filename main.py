@@ -1,7 +1,7 @@
 import time
 
 from src.py_img_scaler.config import ContextConfiguration, setup_logging, get_parsed_args
-from src.py_img_scaler.core import AIUpscaler
+from src.py_img_scaler.core import ImgScaler
 
 
 def main():
@@ -30,7 +30,7 @@ def main():
     start_time = time.time()
 
     # 4. Engine initialization accepts our single context object
-    upscaler_engine = AIUpscaler(config=current_config)
+    upscaler_engine = ImgScaler(config=current_config)
 
     success_count = 0
 

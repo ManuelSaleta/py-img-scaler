@@ -71,7 +71,7 @@ Once your environment is provisioned, invoke the processing pipeline directly us
 
 ```python
 import logging
-from src.py_img_scaler import AIUpscaler, ContextConfiguration, setup_logging
+from src.py_img_scaler import ImgScaler, ContextConfiguration, setup_logging
 
 # 1. Attach your application context to the logging stream
 setup_logging()
@@ -88,7 +88,7 @@ config = ContextConfiguration(
 try:
     # 3. Instantiate the execution engine (Auto-detects CUDA / MPS / CPU)
     # Will work on all platforms MacOS / Windows / Linux
-    engine = AIUpscaler(config=config)
+    engine = ImgScaler(config=config)
 
     # 4. Ingest and upscale individual physical media frames
     success = engine.upscale_img(
