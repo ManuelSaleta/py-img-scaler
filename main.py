@@ -1,6 +1,6 @@
 import time
 
-from src.py_img_scaler.config import ContextConfiguration, ImgUpLogger, get_parsed_args
+from src.py_img_scaler.config import ContextConfiguration, setup_logging, get_parsed_args
 from src.py_img_scaler.core import AIUpscaler
 
 
@@ -9,7 +9,7 @@ def main():
     Main entry point for the py_img_scaler application.
     Orchestrates execution using ContextConfiguration and the AIUpscaler engine.
     """
-    logger = ImgUpLogger().get()
+    logger = setup_logging()
 
     logger.info("Initializing py_img_scaler runtime environment...")
 

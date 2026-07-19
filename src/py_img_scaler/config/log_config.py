@@ -6,41 +6,45 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 
-class ImgUpLogger:
-    def __init__(self, name: str = "py_img_scaler", log_level: int = logging.INFO, log_dir: str = "logs"):
-        self.logger = logging.getLogger(name)
-        self.log_dir = Path(log_dir)
+def setup_logging(name="py_img_scaler", log_level=logging.INFO) -> logging.Logger:
+    """
+    Sets up a dual-destination logging pipeline for py_img_scaler.
+    Outputs to both the console (sys.stdout) and a rotating log file.
+    """
+    logger = logging.getLogger(name)
 
-        # Determine log level (Env var takes precedence)
-        env_level = os.getenv("LOG_LEVEL")
-        self.level = getattr(logging, env_level.upper()) if env_level else log_level
+    # Set the global minimum logging level
+    log_level = os.getenv("LOG_LEVEL") or log_level
+    logger.setLevel(log_level)
 
-        self._configure()
+    # Prevent adding duplicate handlers if this initialization function is called twice
+    if logger.handlers:
+        return logger
 
-    def _configure(self):
-        """Internal setup to avoid duplicate handlers."""
-        if self.logger.handlers:
-            return
+    # A clean, standardized layout tracking: Timestamp | Severity | File/Line | Message
+    log_format = logging.Formatter(
+        "[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d]: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
-        self.logger.setLevel(self.level)
-        self.log_dir.mkdir(exist_ok=True)
+    # CONSOLE Handler (For real-time scanning in your terminal or PyCharm run window)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(log_format)
+    logger.addHandler(console_handler)
 
-        # Formatter
-        formatter = logging.Formatter(
-            "[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d]: %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
+    # Format: YYYY-MM-DD_HHMMSS (e.g., upscaler_2026-07-11_114622.log)
+    date_time_info = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    log_filename = f"upscaler_{date_time_info}.log"
+    log_file_path = Path(log_filename)
 
-        # Console Handler
-        console = logging.StreamHandler(sys.stdout)
-        console.setFormatter(formatter)
-        self.logger.addHandler(console)
+    # FILE Handler (Keeps up to three 5MB logs, discarding the oldest automatically)
+    file_handler = RotatingFileHandler(
+        log_file_path,
+        maxBytes=5 * 1024 * 1024,  # 5 Megabytes
+        backupCount=3,
+        encoding="utf-8",
+    )
+    file_handler.setFormatter(log_format)
+    logger.addHandler(file_handler)
 
-        # File Handler
-        log_file = self.log_dir / f"upscaler_{datetime.now().strftime('%Y-%m-%d_%H%M%S')}.log"
-        file_handler = RotatingFileHandler(log_file, maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8")
-        file_handler.setFormatter(formatter)
-        self.logger.addHandler(file_handler)
-
-    def get(self) -> logging.Logger:
-        return self.logger
+    return logger
