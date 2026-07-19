@@ -29,6 +29,7 @@ dev = [
     "black",
     "ruff",
     "mypy",
+    "pytest"
 ]
 
 [project.scripts]
