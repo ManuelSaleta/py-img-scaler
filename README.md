@@ -2,9 +2,9 @@
 
 [![Tests](https://github.com/ManuelSaleta/py-img-scaler/actions/workflows/python-test.yml/badge.svg)](https://github.com/ManuelSaleta/py-img-scaler/actions/workflows/python-test.yml)
 
-A cross-platform, high-performance AI image upscaling tool.
+A cross-platform, high-performance image upscaling tool, leverages AI image processing.
 
-Powered natively by `torchsr` (NinaSR). Supports hardware acceleration across NVIDIA, AMD, and Apple Silicon.
+Powered natively by `torchsr` (NinaSR).
 
 ---
 
@@ -19,7 +19,7 @@ Powered natively by `torchsr` (NinaSR). Supports hardware acceleration across NV
 
 ### 1. System Dependencies (Linux)
 
-Ensure Python 3.14 (recommended) and your platform graphics drivers (ROCm/CUDA) are installed.
+Ensure Python 3.13 (recommended) and your platform graphics drivers (ROCm/CUDA) are installed.
 
 ### 2. Automated Environment Setup
 
@@ -32,13 +32,14 @@ make fresh
 ### Additional Make recipes
 
 ```bash
-    make venv      - Create a clean local virtual environment using $(PYTHON_BIN)"
-    make install   - Upgrade core tooling and install platform-specific packages"
-    make run       - Execute py_img_scaler main loop"
-    make clean     - Destroy virtual environment and cached bytecodes"
-    make lint      - Runs, Black, Ruff, and MyPy checks"
-    make check     - Only check Black, Ruff, and MyPy checks"
-    make test      - Run all unit tests inside the tests directory"
+    make venv         - Create a clean local virtual environment using $(PYTHON_BIN)
+    make install      - Upgrade core tooling and install platform-specific packages
+    make install-dev  - Install dev dependencies like ruff, pytest etc.
+    make run          - Execute py_img_scaler main loop
+    make clean        - Destroy virtual environment and cached bytecodes
+    make lint         - Runs, Black, Ruff, and MyPy checks
+    make check        - Only check Black, Ruff, and MyPy checks
+    make test         - Run all unit tests inside the tests directory
 ```
 
 ---
@@ -66,43 +67,48 @@ Once your environment is provisioned, invoke the processing pipeline directly us
     # Advanced execution overriding targets for a crisp 5K Ultra-Wide frame canvas
     py_img_scaler -s ./wallpapers -d ./output -m 2 -W 5120 -H 2160
 ```
+### 2. Simple Configuation
+```python
+from py_img_scaler import ImgScaler, ContextConfiguration
 
-### 2. Working with the API Directly
+# 1. Use the factory to load defaults (or .env file variables)
+# This auto-sets resolution, model, and tile sizes to safe defaults.
+config = ContextConfiguration.from_runtime()
+
+# 2. Instantiate and run
+engine = ImgScaler(config=config)
+engine.upscale_img(
+    input_path="./my_photo.jpg",
+    output_path="./upscaled_photo.jpg"
+)
+```
+### 3. Advanced Configuration 
 
 ```python
 import logging
+from pathlib import Path
 from src.py_img_scaler import ImgScaler, ContextConfiguration, setup_logging
 
 # 1. Attach your application context to the logging stream
 setup_logging()
 logger = logging.getLogger("py_img_scaler.core")
 
-# 2. Build your configuration layer context matrix
+
+# 2. Build a custom configuration matrix
 config = ContextConfiguration(
-    model="1",  # NinaSR-B1 architecture pipeline footprint
-    tile_size=400,  # Slicing chunk constraints to prevent VRAM crashes
-    target_width=5120,  # Target 5K Wide aspect dimension matching
-    target_height=2160  # Target 2160p height matching
+    model="1",                          # Options: "0", "1", "2" - 3 is most demanding model
+    tile_size=400,                      # Adjust lower if you encounter VRAM Out-Of-Memory errors
+    target_width=5120,                  # Adjust your upscaling target width
+    target_height=2160,                 # Adjust your upscaling target height
+    source_dir=Path("./input"),         # Input dir containing your images.
+    destination_dir=Path("./output")    # Destination dir
 )
 
-try:
-    # 3. Instantiate the execution engine (Auto-detects CUDA / MPS / CPU)
-    # Will work on all platforms MacOS / Windows / Linux
-    engine = ImgScaler(config=config)
+# 3. Instantiate the engine (Auto-detects CUDA / MPS / CPU)
+engine = ImgScaler(config=config)
 
-    # 4. Ingest and upscale individual physical media frames
-    success = engine.upscale_img(
-        input_path="./input_photos/raw_horizon.jpg",
-        output_path="./output_upscaled_photos/5k_horizon.jpg"
-    )
-
-    if success:
-        logger.info("Image upscale task executed successfully.")
-
-except ValueError as e:
-    logger.error(f"Configuration boundary violation detected: {e}")
-except Exception as e:
-    logger.exception(f"Engine processing crash: {e}")
+# 4. Upscale images
+engine.upscale_img("./input/raw_horizon.jpg", "./output/5k_horizon.jpg")
 ```
 
 ## License
