@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from py_img_scaler.config.context_config import ContextConfiguration
+from src.py_img_scaler.config.context_config import ContextConfiguration
 
 
 @patch("dotenv.load_dotenv")  # Globally safely mock out file system .env disk sweeps

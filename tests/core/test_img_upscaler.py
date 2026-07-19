@@ -1,11 +1,10 @@
 import unittest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import torch
 
-from py_img_scaler.core import AIUpscaler
+from src.py_img_scaler.core import AIUpscaler
 
 
 class ImgUpscalerUnitTests(unittest.TestCase):

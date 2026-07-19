@@ -71,7 +71,7 @@ Once your environment is provisioned, invoke the processing pipeline directly us
 
 ```python
 import logging
-from py_img_scaler import AIUpscaler, ContextConfiguration, setup_logging
+from src.py_img_scaler import AIUpscaler, ContextConfiguration, setup_logging
 
 # 1. Attach your application context to the logging stream
 setup_logging()
@@ -79,10 +79,10 @@ logger = logging.getLogger("py_img_scaler.core")
 
 # 2. Build your configuration layer context matrix
 config = ContextConfiguration(
-    model="1",            # NinaSR-B1 architecture pipeline footprint
-    tile_size=400,        # Slicing chunk constraints to prevent VRAM crashes
-    target_width=5120,    # Target 5K Wide aspect dimension matching
-    target_height=2160    # Target 2160p height matching
+    model="1",  # NinaSR-B1 architecture pipeline footprint
+    tile_size=400,  # Slicing chunk constraints to prevent VRAM crashes
+    target_width=5120,  # Target 5K Wide aspect dimension matching
+    target_height=2160  # Target 2160p height matching
 )
 
 try:

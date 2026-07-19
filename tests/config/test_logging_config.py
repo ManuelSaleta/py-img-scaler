@@ -2,7 +2,7 @@ import logging
 import unittest
 from unittest.mock import patch
 
-from py_img_scaler.config import log_config
+from src.py_img_scaler.config import log_config
 
 
 # Testing Logging is not really recommended, just checking it respects the custom ENV_VARS
