@@ -68,6 +68,7 @@ Once your environment is provisioned, invoke the processing pipeline directly us
     py_img_scaler -s ./wallpapers -d ./output -m 2 -W 5120 -H 2160
 ```
 ### 2. Simple Configuation
+
 ```python
 from py_img_scaler import ImgScaler, ContextConfiguration
 
@@ -78,8 +79,8 @@ config = ContextConfiguration.from_runtime()
 # 2. Instantiate and run
 engine = ImgScaler(config=config)
 engine.upscale_img(
-    input_path="./my_photo.jpg",
-    output_path="./upscaled_photo.jpg"
+    src_file="./my_photo.jpg",
+    dest_file="./upscaled_photo.jpg"
 )
 ```
 ### 3. Advanced Configuration 
@@ -107,9 +108,16 @@ config = ContextConfiguration(
 # 3. Instantiate the engine (Auto-detects CUDA / MPS / CPU)
 engine = ImgScaler(config=config)
 
-# 4. Upscale images
-engine.upscale_img("./input/raw_horizon.jpg", "./output/5k_horizon.jpg")
+# IF you specify the source/destination in the Context manager in step 2.
+# you can directly loop through all images found in ./input by calling .get_image_files
+image_files = config.get_image_files()
+
+for file_path in image_files:
+    out_path = config.destination_dir / f"upscaled_{file_path.name}"
+    # 5 Upscale images
+    success = engine.upscale_img(file_path, out_path)
 ```
+Take a look at `main.py` for additional options, such as passing `cli_args` to `config.from_runtime`
 
 ## License
 

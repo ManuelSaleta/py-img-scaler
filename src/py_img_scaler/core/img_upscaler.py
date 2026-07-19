@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -140,14 +141,14 @@ class ImgScaler:
         return output_tensor
 
     # TODO: Add support for batch processing of multiple images in a single call to improve throughput, if possible
-    def upscale_img(self, input_path, output_path):
+    def upscale_img(self, src_file, dest_file):
         """
         Ingests an image path, runs it through the neural network pipeline, and
         uses an accurate bicubic interpolation resize to hit exactly 5K width.
         """
         try:
-            in_p = Path(input_path).resolve()
-            out_p = Path(output_path).resolve()
+            in_p = Path(src_file).resolve()
+            out_p = Path(dest_file).resolve()
 
             img = cv2.imread(str(in_p), cv2.IMREAD_UNCHANGED)
             if img is None:
@@ -187,5 +188,5 @@ class ImgScaler:
             return True
 
         except Exception as e:
-            logger.exception(f"An unexpected error occurred while upscaling {input_path}: {str(e)}")
+            logger.exception(f"An unexpected error occurred while upscaling {src_file}: {str(e)}")
             return False
