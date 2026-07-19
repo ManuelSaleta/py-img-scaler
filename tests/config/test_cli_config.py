@@ -2,7 +2,7 @@ import random
 import unittest
 from unittest.mock import patch
 
-from py_img_scaler.config import cli_config
+from src.py_img_scaler.config import cli_config
 
 # allowed values for --model, -m = 0,1,2
 randomly_picked_model = str(random.randint(0, 2))

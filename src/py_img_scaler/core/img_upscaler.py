@@ -11,7 +11,7 @@ from torchsr.models import (
 )
 
 # Target the new single source of truth configuration context module
-from py_img_scaler.config import ContextConfiguration
+from src.py_img_scaler.config import ContextConfiguration
 
 # Retrieve the pre-configured global application logger
 logger = logging.getLogger("py_img_scaler.core")
@@ -19,7 +19,7 @@ logger = logging.getLogger("py_img_scaler.core")
 
 # Quick and Dirty, but effective, check for GPU availability and type
 # TODO: Refactor for more robust error handling and support
-class AIUpscaler:
+class ImgScaler:
 
     def __init__(self, config: ContextConfiguration):
         """

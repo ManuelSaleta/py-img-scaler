@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -19,6 +19,15 @@ class ContextConfiguration:
     tile_size: int = 400
     target_width: int = 1920
     target_height: int = 1080
+
+    @staticmethod
+    def get_project_root() -> Path:
+        """Dynamically locates project root by searching for pyproject.toml."""
+        curr = Path(__file__).resolve()
+        for parent in [curr, *curr.parents]:
+            if (parent / "pyproject.toml").exists():
+                return parent
+        return Path.cwd()
 
     def __post_init__(self):
         """Validates and sanitizes parameters post-construction."""
@@ -45,52 +54,36 @@ class ContextConfiguration:
         Factory method serving as the single entry point for all configuration.
         Priority: Explicit kwargs > CLI arguments > Environment Variables > Defaults
         """
-        # Load environment variables right here so programmatic users get seamless
-        # .env parsing out of the box without needing external boilerplate.
         try:
             from dotenv import load_dotenv
             load_dotenv()
         except ImportError:
-            # Fallback safeguard if a programmatic user didn't install python-dotenv
             logger.debug("python-dotenv not found; skipping automated .env parsing.")
 
-        # Resolve base path context
-        root_dir_pos = 2
-        base_path = Path(__file__).resolve().parents[root_dir_pos] if relative else Path.cwd()
+        # Resolve anchor point
+        base_path = cls.get_project_root() if relative else Path.cwd()
 
-        # Helper to extract value down the priority chain
         def resolve_val(key: str, env_var: str, default: Any, cli_attr: str | None = None) -> Any:
-            # 1. Check explicit keyword args (programmatic use / hardcoded values)
             if key in kwargs and kwargs[key] is not None:
                 return kwargs[key]
-            # 2. Check CLI arguments object if provided
             if cli_args and cli_attr and hasattr(cli_args, cli_attr) and getattr(cli_args, cli_attr) is not None:
                 return getattr(cli_args, cli_attr)
-            # 3. Check Environment Variables
             return os.getenv(env_var) or default
 
-        # Resolve paths
-        raw_source = resolve_val("source_dir", "PYIMG_SOURCE_DIR", "input_photos", "source")
-        src_path = Path(raw_source)
-        final_source = base_path / src_path if relative and not src_path.is_absolute() else src_path
-
-        raw_dest = resolve_val("destination_dir", "PYIMG_DEST_DIR", "output_upscaled_photos", "destination")
-        dest_path = Path(raw_dest)
-        final_dest = base_path / dest_path if relative and not dest_path.is_absolute() else dest_path
-
-        # Resolve remaining configuration primitives
-        final_model = str(resolve_val("model", "PYIMG_MODEL", "1", "model"))
-        final_tile = resolve_val("tile_size", "PYIMG_TILE_SIZE", 400, "tile_size")
-        final_width = resolve_val("target_width", "PYIMG_WIDTH", 1920, "width")
-        final_height = resolve_val("target_height", "PYIMG_HEIGHT", 1080, "height")
+        def get_resolved_path(key: str, env_var: str, default: str, cli_attr: str | None) -> Path:
+            raw_val = resolve_val(key, env_var, default, cli_attr)
+            path = Path(raw_val)
+            if relative and not path.is_absolute():
+                return base_path / path
+            return path
 
         return cls(
-            source_dir=final_source,
-            destination_dir=final_dest,
-            model=final_model,
-            tile_size=final_tile,
-            target_width=final_width,
-            target_height=final_height
+            source_dir=get_resolved_path("source_dir", "PYIMG_SOURCE_DIR", "input_photos", "source"),
+            destination_dir=get_resolved_path("destination_dir", "PYIMG_DEST_DIR", "output_upscaled_photos", "destination"),
+            model=str(resolve_val("model", "PYIMG_MODEL", "1", "model")),
+            tile_size=resolve_val("tile_size", "PYIMG_TILE_SIZE", 400, "tile_size"),
+            target_width=resolve_val("target_width", "PYIMG_WIDTH", 1920, "width"),
+            target_height=resolve_val("target_height", "PYIMG_HEIGHT", 1080, "height")
         )
 
     def get_image_files(self) -> list[Path]:

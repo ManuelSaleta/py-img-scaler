@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "py-img-scaler"
-version = "0.0.3"
+version = "0.0.4"
 description = "A cross-platform AI upscaling utility to upscale images to a higher resolution."
 readme = {file = "README.md", content-type = "text/markdown"}
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 dependencies = [
     # --- PyTorch Core
     "torch>=2.12.0",
@@ -29,6 +29,7 @@ dev = [
     "black",
     "ruff",
     "mypy",
+    "pytest"
 ]
 
 [project.scripts]
@@ -66,3 +67,8 @@ exclude = [
     '^dist/',
     '\.egg-info/'
 ]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["py_img_scaler*"]
+

@@ -1,11 +1,10 @@
 import unittest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import torch
 
-from py_img_scaler.core import AIUpscaler
+from src.py_img_scaler.core import ImgScaler
 
 
 class ImgUpscalerUnitTests(unittest.TestCase):
@@ -59,14 +58,14 @@ class ImgUpscalerUnitTests(unittest.TestCase):
         self.mock_config.model = "99"  # Corrupted configuration value
 
         with self.assertRaises(ValueError):
-            AIUpscaler(self.mock_config)
+            ImgScaler(self.mock_config)
 
     @patch("torch.cuda.is_available", return_value=False)
     @patch("torchsr.models.ninasr_b1")
     def test_tensor_preprocessing_dimensions_and_scaling(self, mock_model_b1, mock_cuda_avail):
         """Confirm structural matrix dimensions shift from [H, W, C] to [1, C, H, W]."""
         # Arrange
-        scaler = AIUpscaler(self.mock_config)
+        scaler = ImgScaler(self.mock_config)
 
         # Act
         tensor_output = scaler._process_tensor(self.dummy_cv_img)
@@ -84,23 +83,25 @@ class ImgUpscalerUnitTests(unittest.TestCase):
         """Ensure tiling algorithm loops slice spatial boxes effectively."""
         # Arrange
         mock_model_instance = MagicMock()
-        # Mock model return value to pass #TODO: fix broken a dummy tensor block forward matching 4x scale footprint
         mock_model_instance.scale = 4
-        mock_model_instance.return_value = torch.zeros((1, 3, 80, 80))
+        # Ensure the mock model returns a tensor on the same device as the input
+        # We use a side_effect to move output to the input's device dynamically
+        mock_model_instance.side_effect = lambda x: torch.zeros((1, 3, 80, 80)).to(x.device)
         mock_model_b1.return_value = mock_model_instance
 
         self.mock_config.tile_size = 20
-        scaler = AIUpscaler(self.mock_config)
+        scaler = ImgScaler(self.mock_config)
 
-        # 1 sample frame input of 20x20 dimensions
-        input_tensor = torch.zeros((1, 3, 20, 20))
+        # FIX: Ensure input_tensor is created on the scaler's device
+        input_tensor = torch.zeros((1, 3, 20, 20)).to(scaler.device)
 
         # Act
         output_tensor = scaler._enhance_with_tiling(input_tensor)
 
         # Assert
-        # Output should be perfectly upscaled 4x from input matrix structure
         self.assertEqual(list(output_tensor.shape), [1, 3, 80, 80])
+        # Verify device consistency
+        self.assertEqual(output_tensor.device, input_tensor.device)
 
     @patch("torch.cuda.is_available", return_value=False)
     @patch("cv2.imwrite")
@@ -137,7 +138,7 @@ class ImgUpscalerUnitTests(unittest.TestCase):
     def test_upscale_img_returns_false_on_missing_file_asset(self, mock_model_b1, mock_imread, mock_cuda_avail):
         """Confirm execution failure gracefully stops if image parsing asset breaks."""
         # Arrange
-        scaler = AIUpscaler(self.mock_config)
+        scaler = ImgScaler(self.mock_config)
 
         # Act
         success = scaler.upscale_img("broken_path.png", "output.png")

@@ -1,8 +1,8 @@
-
-from config import setup_logging
 import time
-from py_img_scaler.config import ContextConfiguration, get_parsed_args
-from py_img_scaler.core import AIUpscaler
+
+from src.py_img_scaler.config import ContextConfiguration, setup_logging, get_parsed_args
+from src.py_img_scaler.core import ImgScaler
+
 
 def main():
     """
@@ -13,14 +13,11 @@ def main():
 
     logger.info("Initializing py_img_scaler runtime environment...")
 
-
     # 1. Parse raw command line args
     parsed_arguments = get_parsed_args()
 
     # 2. Build configuration context (Explicitly handling the 5K target defaults here)
-    current_config = ContextConfiguration.from_runtime(
-        cli_args=parsed_arguments
-    )
+    current_config = ContextConfiguration.from_runtime(cli_args=parsed_arguments)
     current_config.ensure_directories_exist()
 
     # 3. Locate processing files
@@ -33,7 +30,7 @@ def main():
     start_time = time.time()
 
     # 4. Engine initialization accepts our single context object
-    upscaler_engine = AIUpscaler(config=current_config)
+    upscaler_engine = ImgScaler(config=current_config)
 
     success_count = 0
 
@@ -53,6 +50,7 @@ def main():
     total_time = time.time() - start_time
     logger.info(f"Execution complete. Processed: {success_count}/{len(image_files)} files in {total_time:.2f}s.")
     logger.info("=====================================================================")
+
 
 if __name__ == "__main__":
     main()
